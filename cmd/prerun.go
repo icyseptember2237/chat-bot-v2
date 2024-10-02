@@ -21,14 +21,14 @@ func init() {
 func preRun(cmd *cobra.Command, args []string) {
 	configFile, _ := cmd.Flags().GetString("config")
 	logger.Infof(context.Background(), "cmdline config file: %v", configFile)
-	if _, err := config.Load(configFile); err != nil {
+	var err error
+	if conf, err = config.Load(configFile); err != nil {
 		panic(fmt.Errorf("config load failed: %s", err.Error()))
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
-	conf := config.Get()
 	// TODO Mongo Redis初始化
 	if conf.Resources != nil && len(conf.Resources.Storage.Mysql) > 0 {
 		if err := gorm.Init(ctx, conf.Resources.Storage.Mysql, gorm.DBTypeMysql); err != nil {

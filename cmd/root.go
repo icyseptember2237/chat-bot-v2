@@ -1,31 +1,29 @@
 package cmd
 
 import (
-	"chatbot/server"
-	"context"
+	"chatbot/config"
+	"chatbot/function"
 	"fmt"
 	"github.com/spf13/cobra"
-	"log"
+	"os"
 )
 
 func init() {
-	rootCmd.Flags().Int32P("port", "p", 8080, "运行端口, 默认8080")
 	rootCmd.Flags().StringP("config", "c", "./config/config.json", "配置文件路径, 默认./config/config.json")
 }
 
+var conf *config.Config
 var rootCmd = &cobra.Command{
-	Use:    "模版",
-	Short:  "Go基于gin, viper, cobra....封装的模版",
+	Use:    "QQBot",
+	Short:  "Lua脚本QQBot",
 	PreRun: preRun,
 	Run: func(cmd *cobra.Command, args []string) {
-		ctx := context.Background()
-		go func() {
-			httpServer := server.New("http", ":8080").(*server.HttpServer)
-			if err := httpServer.Server.Run(ctx); err != nil {
-				log.Fatalln(err)
-			}
-		}()
-		select {}
+		functionServer := function.New(conf.Server)
+		if functionServer != nil {
+			go functionServer.Start()
+		}
+		quit := make(chan os.Signal, 1)
+		<-quit
 	},
 }
 
