@@ -1,0 +1,29 @@
+{
+  "server": {
+    "port": ":8080",
+    "log": {
+      "level": "debug",
+      "file": "./template.log",
+      "err_file": "./template.err.log",
+      "app_name": "template"
+    }
+  },
+  "resources": {
+    "storage": {
+      "mysql": {
+      },
+      "postgresql": {
+
+      },
+      "mongo": {
+
+      },
+      "redis": {
+
+      }
+    },
+    "queue": {
+
+    }
+  }
+}
