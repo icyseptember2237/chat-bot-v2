@@ -1,10 +1,10 @@
 package cmd
 
 import (
+	"chatbot/server"
 	"context"
 	"fmt"
 	"github.com/spf13/cobra"
-	"gotemplate/server"
 	"log"
 )
 

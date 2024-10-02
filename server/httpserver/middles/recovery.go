@@ -1,7 +1,7 @@
 package middles
 
 import (
-	"gotemplate/logger"
+	"chatbot/logger"
 	"net/http"
 	"runtime/debug"
 

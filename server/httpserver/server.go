@@ -1,11 +1,11 @@
 package httpserver
 
 import (
+	"chatbot/logger"
+	"chatbot/server/httpserver/middles"
 	"context"
 	"errors"
 	"github.com/gin-gonic/gin"
-	"gotemplate/logger"
-	"gotemplate/server/httpserver/middles"
 	"log"
 	"net/http"
 	"os"

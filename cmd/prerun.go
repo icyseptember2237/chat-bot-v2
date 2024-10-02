@@ -1,14 +1,14 @@
 package cmd
 
 import (
+	"chatbot/config"
+	"chatbot/logger"
+	"chatbot/storage/gorm"
+	"chatbot/utils/exit"
 	"context"
 	"fmt"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"gotemplate/config"
-	"gotemplate/logger"
-	"gotemplate/storage/gorm"
-	"gotemplate/utils/exit"
 	"time"
 )
 

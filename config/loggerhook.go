@@ -1,9 +1,9 @@
 package config
 
 import (
+	"chatbot/logger"
 	"github.com/mitchellh/mapstructure"
 	"github.com/pkg/errors"
-	"gotemplate/logger"
 	"reflect"
 )
 

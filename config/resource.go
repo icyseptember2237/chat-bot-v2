@@ -1,6 +1,6 @@
 package config
 
-import "gotemplate/storage"
+import "chatbot/storage"
 
 type Resource struct {
 	Storage *storage.Storage `mapstructure:"storage"`

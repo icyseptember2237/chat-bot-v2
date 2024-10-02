@@ -1,8 +1,8 @@
 package middles
 
 import (
+	"chatbot/logger"
 	"context"
-	"gotemplate/logger"
 	"net/http"
 )
 

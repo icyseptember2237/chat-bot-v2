@@ -1,11 +1,11 @@
 package server
 
 import (
+	"chatbot/handler"
+	"chatbot/server/httpserver"
 	"github.com/gin-gonic/gin"
 	swaggerFiles "github.com/swaggo/files"
 	ginSwagger "github.com/swaggo/gin-swagger"
-	"gotemplate/handler"
-	"gotemplate/server/httpserver"
 	"net/http"
 )
 

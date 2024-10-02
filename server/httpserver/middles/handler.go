@@ -1,11 +1,11 @@
 package middles
 
 import (
+	"chatbot/logger"
+	"chatbot/server/httpserver/middles/status"
 	"context"
 	"errors"
 	"github.com/gin-gonic/gin"
-	"gotemplate/logger"
-	"gotemplate/server/httpserver/middles/status"
 	"net/http"
 	"reflect"
 )

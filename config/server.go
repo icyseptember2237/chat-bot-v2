@@ -1,6 +1,6 @@
 package config
 
-import "gotemplate/logger"
+import "chatbot/logger"
 
 type Server struct {
 	Port string          `mapstructure:"port"`

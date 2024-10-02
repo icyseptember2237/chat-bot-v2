@@ -1,6 +1,6 @@
 package main
 
-import "gotemplate/cmd"
+import "chatbot/cmd"
 
 func main() {
 	cmd.Execute()
