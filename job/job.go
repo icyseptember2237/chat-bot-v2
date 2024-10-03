@@ -86,7 +86,7 @@ func (j *Job) preload() error {
 	if err := j.engine.ParseFile(j.conf.Script); err != nil {
 		return err
 	}
-
+	j.engine.SetReady()
 	j.ready = true
 	return nil
 }
