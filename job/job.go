@@ -6,6 +6,7 @@ import (
 	"chatbot/logger"
 	"chatbot/msg"
 	"chatbot/utils/deep"
+	"chatbot/utils/engine_pool"
 	"chatbot/utils/luatool"
 	"context"
 	"errors"
@@ -77,7 +78,7 @@ func NewJob(conf config.JobConfig) *Job {
 }
 
 func (j *Job) preload() error {
-	j.engine = engine.InitEnginePool(engine.TypeEngineLua).New()
+	j.engine = engine_pool.NewEnginePool().GetRawEngine()
 	if j.conf.Config != nil && len(j.conf.Config) > 0 {
 		j.engine.RegisterObject("config", j.conf.Config)
 	}
