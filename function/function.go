@@ -289,24 +289,26 @@ func (f *Server) receiveMessage(ctx *gin.Context) {
 				return
 			}
 
-			send := &msg.GroupMessage{
-				GroupId:    received.GroupId,
-				Message:    nil,
-				AutoEscape: false,
-			}
+			var segments []*msg.Segment
 
-			if err := mapstructure.Decode(retRes, &send.Message); err != nil {
+			if err := mapstructure.Decode(retRes, &segments); err != nil {
 				logger.Errorf(ctx, "mapstructure.Decode error: %+v", err)
 				ctx.Status(http.StatusNoContent)
 				return
 			}
 
-			for k, m := range send.Message {
+			for k, m := range segments {
 				n := make(map[string]interface{})
 				for k1, v := range m.Data {
 					n[strings.ToLower(k1)] = v
 				}
-				send.Message[k].Data = n
+				segments[k].Data = n
+			}
+
+			send := &msg.GroupMessage{
+				GroupId:    received.GroupId,
+				Message:    segments,
+				AutoEscape: false,
 			}
 
 			if _, err := send.Send(f.conf.BotAddr, f.conf.BotToken); err != nil {
