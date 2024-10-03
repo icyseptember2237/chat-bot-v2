@@ -4,7 +4,6 @@ import (
 	"chatbot/config"
 	"chatbot/logger"
 	"chatbot/storage/gorm"
-	"chatbot/utils/exit"
 	"context"
 	"fmt"
 	"github.com/spf13/cobra"
@@ -40,5 +39,4 @@ func preRun(cmd *cobra.Command, args []string) {
 			panic(fmt.Errorf("PostgreSQL init error: %s", err.Error()))
 		}
 	}
-	go exit.HouseKeeping()
 }
