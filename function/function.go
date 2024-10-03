@@ -25,7 +25,7 @@ import (
 )
 
 const (
-	defaultRateLimit = 120
+	defaultRateLimit = 180
 )
 
 type Server struct {
