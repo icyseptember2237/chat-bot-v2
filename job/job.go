@@ -1,7 +1,7 @@
 package job
 
 import (
-	config2 "chatbot/config"
+	globalconfig "chatbot/config"
 	"chatbot/job/config"
 	"chatbot/logger"
 	"chatbot/msg"
@@ -150,7 +150,7 @@ func (j *Job) run(ts int64) {
 			AutoEscape: false,
 		}
 
-		if _, err = send.Send(config2.Get().Server.BotAddr, config2.Get().Server.BotToken); err != nil {
+		if _, err = send.Send(globalconfig.Get().Server.BotAddr, globalconfig.Get().Server.BotToken); err != nil {
 			logger.Errorf(context.Background(), "job %s send err: %v", j.conf.Name, err)
 		}
 	}
