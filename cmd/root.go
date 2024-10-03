@@ -4,6 +4,7 @@ import (
 	"chatbot/config"
 	"chatbot/function"
 	"chatbot/job"
+	"chatbot/worker"
 	"fmt"
 	"github.com/spf13/cobra"
 	"os"
@@ -26,14 +27,23 @@ var rootCmd = &cobra.Command{
 			go functionServer.Start()
 		}
 
-		manager := job.GetManager()
+		jobManager := job.GetManager()
 		for _, jobConf := range conf.Jobs {
 			job := job.NewJob(jobConf)
 			if job != nil {
-				manager.Add(job)
+				jobManager.Add(job)
 			}
 		}
-		manager.StartAll()
+		jobManager.StartAll()
+
+		workerManager := worker.GetManager()
+		for _, workerConf := range conf.Workers {
+			worker := worker.New(workerConf)
+			if worker != nil {
+				workerManager.Add(worker)
+			}
+		}
+		workerManager.StartAll()
 
 		quit := make(chan os.Signal, 1)
 		signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
@@ -43,7 +53,8 @@ var rootCmd = &cobra.Command{
 			functionServer.Stop()
 		}
 
-		job.GetManager().StopAll()
+		jobManager.StopAll()
+		workerManager.StopAll()
 	},
 }
 
