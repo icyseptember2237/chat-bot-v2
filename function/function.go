@@ -64,7 +64,7 @@ func (f *Server) preLoad(ep *engine_pool.EnginePool, script string) {
 		eArr := make([]engine.Engine, 0)
 		for i := 0; i < f.conf.PreloadCnt; i++ {
 			eng, err, _ := ep.GetEngine(script)
-			if err != nil {
+			if err == nil {
 				eng.RegisterObject("config", f.conf.Config)
 
 				eArr = append(eArr, eng)
