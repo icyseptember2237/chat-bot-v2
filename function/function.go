@@ -279,51 +279,59 @@ func (f *Server) receiveMessage(ctx *gin.Context) {
 			return
 		}
 
-		if len(rets) == 2 {
-			retRes := luatool.ConvertLuaData(rets[0])
-			retErr := luatool.ConvertLuaData(rets[1])
+		var (
+			retRes interface{}
+			retErr interface{}
+		)
 
-			if retErr != nil {
-				logger.Errorf(ctx, "lua script error: %+v", retErr)
-				ctx.Status(http.StatusInternalServerError)
-				return
-			}
+		if len(rets) == 1 {
+			retRes = luatool.ConvertLuaData(rets[0])
+		} else if len(rets) == 2 {
+			retRes = luatool.ConvertLuaData(rets[0])
+			retErr = luatool.ConvertLuaData(rets[1])
+		}
 
-			var segments []*msg.Segment
-
-			if err := mapstructure.Decode(retRes, &segments); err != nil {
-				logger.Errorf(ctx, "mapstructure.Decode error: %+v", err)
-				ctx.Status(http.StatusNoContent)
-				return
-			}
-
-			for k, m := range segments {
-				n := make(map[string]interface{})
-				for k1, v := range m.Data {
-					n[strings.ToLower(k1)] = v
-				}
-				segments[k].Data = n
-			}
-
-			send := &msg.GroupMessage{
-				GroupId:    received.GroupId,
-				Message:    segments,
-				AutoEscape: false,
-			}
-
-			if _, err := send.Send(f.conf.BotAddr, f.conf.BotToken); err != nil {
-				logger.Errorf(ctx, "sendMessage error: %+v", retErr)
-				ctx.Status(http.StatusNoContent)
-				return
-			}
-
-			ctx.Status(http.StatusNoContent)
-			return
-
-		} else {
-			logger.Infof(ctx, "wrong rets num, need 2, get %d", len(rets))
+		if retRes == nil {
+			logger.Infof(ctx, "no rets")
 			ctx.Status(http.StatusNoContent)
 			return
 		}
+
+		if retErr != nil {
+			logger.Errorf(ctx, "lua script error: %+v", retErr)
+			ctx.Status(http.StatusInternalServerError)
+			return
+		}
+
+		var segments []*msg.Segment
+
+		if err := mapstructure.Decode(retRes, &segments); err != nil {
+			logger.Errorf(ctx, "mapstructure.Decode error: %+v", err)
+			ctx.Status(http.StatusNoContent)
+			return
+		}
+
+		for k, m := range segments {
+			n := make(map[string]interface{})
+			for k1, v := range m.Data {
+				n[strings.ToLower(k1)] = v
+			}
+			segments[k].Data = n
+		}
+
+		send := &msg.GroupMessage{
+			GroupId:    received.GroupId,
+			Message:    segments,
+			AutoEscape: false,
+		}
+
+		if _, err := send.Send(f.conf.BotAddr, f.conf.BotToken); err != nil {
+			logger.Errorf(ctx, "sendMessage error: %+v", retErr)
+			ctx.Status(http.StatusNoContent)
+			return
+		}
+
+		ctx.Status(http.StatusNoContent)
+		return
 	}
 }
