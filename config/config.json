@@ -1,13 +1,76 @@
 {
-  "server": {
-    "port": ":8080",
-    "log": {
-      "level": "debug",
-      "file": "./template.log",
-      "err_file": "./template.err.log",
-      "app_name": "template"
-    }
+  "log": {
+    "level": "debug",
+    "file": "./chatbot.log",
+    "err_file": "./chatbot.err.log",
+    "app_name": "chatbot"
   },
+  "server": {
+    "server_port": ":8080",
+    "server_addr": "/receiveMessage",
+    "server_token": "",
+    "bot_addr": "http://127.0.0.1:3000",
+    "bot_token": "",
+    "bot_number": "",
+    "admin_port": "",
+    "static": {
+      "path": "/file",
+      "root": "./files/"
+    },
+    "preload_cnt": 20,
+    "config": {
+      "path":"./script/"
+    },
+    "white_group": [],
+    "ban_group": [],
+    "functions": [
+      {
+        "name": "",
+        "description": "",
+        "script": "",
+        "handlers": [
+          {
+            "command":"",
+            "description":"",
+            "handler": ""
+          },
+          {
+            "command": "",
+            "description": "",
+            "handler": ""
+          }
+        ]
+      }
+    ]
+  },
+  "jobs": [
+    {
+      "name": "test",
+      "enable": false,
+      "white_group": [],
+      "cron": "0/5 * * * * ?",
+      "script": "./script/test.lua",
+      "handler": "Test3"
+    }
+  ],
+  "workers": [
+    {
+      "name": "",
+      "enable": true,
+      "num": 1,
+      "rate_limit": 30,
+      "script": "",
+      "handler": "",
+      "source": {
+        "type": "",
+        "config": {}
+      },
+      "dest": {
+        "type": "",
+        "config": {}
+      }
+    }
+  ],
   "resources": {
     "storage": {
       "mysql": {
@@ -21,9 +84,6 @@
       "redis": {
 
       }
-    },
-    "queue": {
-
     }
   }
 }
