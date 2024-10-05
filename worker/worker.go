@@ -98,8 +98,12 @@ func (w *Worker) preload() error {
 		logger.Warnf(context.Background(), "worker %s's dest is empty", w.conf.Name)
 	}
 
-	w.inCh = make(chan worker_msg.Message, int(math.Max(defaultBufferLength, float64(w.conf.Source.BufferLength))))
-	if w.dest != nil {
+	if w.conf.Source != nil {
+		w.inCh = make(chan worker_msg.Message, int(math.Max(defaultBufferLength, float64(w.conf.Source.BufferLength))))
+	} else {
+		w.inCh = make(chan worker_msg.Message, defaultBufferLength)
+	}
+	if w.conf.Dest != nil {
 		w.outCh = make(chan worker_msg.Message, int(math.Max(defaultBufferLength, float64(w.conf.Dest.BufferLength))))
 	}
 
@@ -201,7 +205,7 @@ func (w *Worker) process(ctx context.Context, k int, msg worker_msg.Message) {
 	}
 
 	msg.Info.ProcessTime = time.Now().Unix()
-	err, ret := eng.Call(w.conf.Name, 1, msg.Content.Data, msg.Info)
+	err, ret := eng.Call(w.conf.Handler, 1, msg.Content.Data, msg.Info)
 	if err != nil {
 		w.logger.Errorf(ctx, "worker %s engine %d handle error : %v", w.conf.Name, k, err)
 		return
