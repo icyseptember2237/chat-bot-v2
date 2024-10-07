@@ -40,10 +40,11 @@ func (h *Handler) ReachLimit() bool {
 }
 
 type Function struct {
-	Name        string    `mapstructure:"name" json:"name"`
-	Description string    `mapstructure:"description" json:"description"`
-	Script      string    `mapstructure:"script" json:"script"`
-	Handlers    []Handler `mapstructure:"handlers" json:"handlers"`
+	Name        string                 `mapstructure:"name" json:"name"`
+	Description string                 `mapstructure:"description" json:"description"`
+	Script      string                 `mapstructure:"script" json:"script"`
+	Config      map[string]interface{} `mapstructure:"config" json:"config"`
+	Handlers    []Handler              `mapstructure:"handlers" json:"handlers"`
 }
 
 type Static struct {
@@ -63,7 +64,7 @@ type Server struct {
 
 	PreloadCnt int `mapstructure:"preload_cnt" json:"preload_cnt"`
 	// 全局设置字段
-	Config     map[string]interface{} `mapstructure:"config" json:"config"`
+	Env        map[string]interface{} `mapstructure:"env" json:"env"`
 	WhiteGroup []int64                `mapstructure:"white_group" json:"white_group"`
 	BanGroup   []int64                `mapstructure:"ban_group" json:"ban_group"`
 	Functions  []Function             `mapstructure:"functions" json:"functions"`

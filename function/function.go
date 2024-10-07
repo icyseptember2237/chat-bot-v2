@@ -59,13 +59,14 @@ func GetFunctionServer() *Server {
 	return f
 }
 
-func (f *Server) preLoad(ep *engine_pool.EnginePool, script string) {
+func (f *Server) preLoad(ep *engine_pool.EnginePool, handlerCfg map[string]interface{}, script string) {
 	if f.conf.PreloadCnt != 0 {
 		eArr := make([]engine.Engine, 0)
 		for i := 0; i < f.conf.PreloadCnt; i++ {
 			eng, err, _ := ep.GetEngine(script)
 			if err == nil {
-				eng.RegisterObject("config", f.conf.Config)
+				eng.RegisterObject("env", f.conf.Env)
+				eng.RegisterObject("config", handlerCfg)
 
 				eArr = append(eArr, eng)
 			}
@@ -96,7 +97,7 @@ func (f *Server) initFunction(functions []config.Function) {
 			} else {
 				handlerEp := engine_pool.NewEnginePool()
 				cfg.SetEnginePool(handlerEp)
-				f.preLoad(ep, cfg.Script)
+				f.preLoad(ep, function.Config, cfg.Script)
 			}
 			cfg.SetLimiter(rate.NewLimiter(rate.Every(time.Second*time.Duration(60/cfg.RateLimit)), handler.RateLimit))
 
@@ -106,7 +107,7 @@ func (f *Server) initFunction(functions []config.Function) {
 			}
 			f.handlerMap.Store(key, cfg)
 		}
-		f.preLoad(ep, function.Script)
+		f.preLoad(ep, function.Config, function.Script)
 	}
 }
 
