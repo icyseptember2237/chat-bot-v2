@@ -225,113 +225,117 @@ func (f *Server) receiveMessage(ctx *gin.Context) {
 	}
 
 	key := entry + "/" + command
+	asteriskKey := entry + "/*"
 	if strings.HasPrefix(key, "/help/") {
 		logger.Infof(ctx, "help msg")
 		f.Help(&received)
 		ctx.Status(http.StatusNoContent)
 		return
 	}
-	if handler, ok := f.handlerMap.Load(key); !ok {
-		logger.Infof(ctx, "function %s not found", key)
-		ctx.Status(http.StatusNoContent)
+	var handler interface{}
+	if handler, ok = f.handlerMap.Load(key); !ok {
+		if handler, ok = f.handlerMap.Load(asteriskKey); !ok {
+			logger.Infof(ctx, "function %s not found", key)
+			ctx.Status(http.StatusNoContent)
+			return
+		}
+	}
+
+	if handler.(*config.Handler).ReachLimit() {
+		logger.Errorf(ctx, "request ratelimit reached: %+v", key)
+		ctx.AbortWithStatus(http.StatusNoContent)
 		return
-	} else {
-		if handler.(*config.Handler).ReachLimit() {
-			logger.Errorf(ctx, "request ratelimit reached: %+v", key)
-			ctx.AbortWithStatus(http.StatusNoContent)
-			return
-		}
+	}
 
-		var (
-			err  error
-			rets []interface{}
-			eng  engine.Engine
-		)
+	var (
+		err  error
+		rets []interface{}
+		eng  engine.Engine
+	)
 
-		eng, err, _ = handler.(*config.Handler).GetEnginePool().GetEngine(handler.(*config.Handler).Script)
-		defer handler.(*config.Handler).GetEnginePool().PutEngine(eng)
+	eng, err, _ = handler.(*config.Handler).GetEnginePool().GetEngine(handler.(*config.Handler).Script)
+	defer handler.(*config.Handler).GetEnginePool().PutEngine(eng)
 
-		if err != nil {
-			f.logger.Errorf(ctx, "engine_pool.GetEngine error %+v", err)
-			ctx.Status(http.StatusNoContent)
-			return
-		}
-
-		req := make(map[string]interface{})
-		jstring, err := json.Marshal(&received)
-		if err != nil {
-			f.logger.Errorf(ctx, "json.Marshal error %+v", err)
-			ctx.Status(http.StatusNoContent)
-			return
-		}
-
-		err = json.Unmarshal(jstring, &req)
-		if err != nil {
-			f.logger.Errorf(ctx, "json.Unmarshal error %+v", err)
-			ctx.Status(http.StatusNoContent)
-			return
-		}
-
-		err, rets = eng.Call(handler.(*config.Handler).Handler, 2, req)
-		if err != nil {
-			f.logger.Errorf(ctx, "handleMessage error: %+v", err)
-			_ = ctx.AbortWithError(http.StatusNoContent, err)
-			return
-		}
-
-		var (
-			retRes interface{}
-			retErr interface{}
-		)
-
-		if len(rets) == 1 {
-			retRes = luatool.ConvertLuaData(rets[0])
-		} else if len(rets) == 2 {
-			retRes = luatool.ConvertLuaData(rets[0])
-			retErr = luatool.ConvertLuaData(rets[1])
-		}
-
-		if retRes == nil {
-			logger.Infof(ctx, "no rets")
-			ctx.Status(http.StatusNoContent)
-			return
-		}
-
-		if retErr != nil {
-			logger.Errorf(ctx, "lua script error: %+v", retErr)
-			ctx.Status(http.StatusInternalServerError)
-			return
-		}
-
-		var segments []*msg.Segment
-
-		if err := mapstructure.Decode(retRes, &segments); err != nil {
-			logger.Errorf(ctx, "mapstructure.Decode error: %+v", err)
-			ctx.Status(http.StatusNoContent)
-			return
-		}
-
-		for k, m := range segments {
-			n := make(map[string]interface{})
-			for k1, v := range m.Data {
-				n[strings.ToLower(k1)] = v
-			}
-			segments[k].Data = n
-		}
-
-		send := &msg.GroupMessage{
-			GroupId:    received.GroupId,
-			Message:    segments,
-			AutoEscape: false,
-		}
-
-		if _, err := send.Send(f.conf.BotAddr, f.conf.BotToken); err != nil {
-			logger.Errorf(ctx, "sendMessage error: %+v", retErr)
-			ctx.Status(http.StatusNoContent)
-			return
-		}
-
+	if err != nil {
+		f.logger.Errorf(ctx, "engine_pool.GetEngine error %+v", err)
 		ctx.Status(http.StatusNoContent)
 		return
 	}
+
+	req := make(map[string]interface{})
+	jstring, err := json.Marshal(&received)
+	if err != nil {
+		f.logger.Errorf(ctx, "json.Marshal error %+v", err)
+		ctx.Status(http.StatusNoContent)
+		return
+	}
+
+	err = json.Unmarshal(jstring, &req)
+	if err != nil {
+		f.logger.Errorf(ctx, "json.Unmarshal error %+v", err)
+		ctx.Status(http.StatusNoContent)
+		return
+	}
+
+	err, rets = eng.Call(handler.(*config.Handler).Handler, 2, req)
+	if err != nil {
+		f.logger.Errorf(ctx, "handleMessage error: %+v", err)
+		_ = ctx.AbortWithError(http.StatusNoContent, err)
+		return
+	}
+
+	var (
+		retRes interface{}
+		retErr interface{}
+	)
+
+	if len(rets) == 1 {
+		retRes = luatool.ConvertLuaData(rets[0])
+	} else if len(rets) == 2 {
+		retRes = luatool.ConvertLuaData(rets[0])
+		retErr = luatool.ConvertLuaData(rets[1])
+	}
+
+	if retRes == nil {
+		logger.Infof(ctx, "no rets")
+		ctx.Status(http.StatusNoContent)
+		return
+	}
+
+	if retErr != nil {
+		logger.Errorf(ctx, "lua script error: %+v", retErr)
+		ctx.Status(http.StatusInternalServerError)
+		return
+	}
+
+	var segments []*msg.Segment
+
+	if err := mapstructure.Decode(retRes, &segments); err != nil {
+		logger.Errorf(ctx, "mapstructure.Decode error: %+v", err)
+		ctx.Status(http.StatusNoContent)
+		return
+	}
+
+	for k, m := range segments {
+		n := make(map[string]interface{})
+		for k1, v := range m.Data {
+			n[strings.ToLower(k1)] = v
+		}
+		segments[k].Data = n
+	}
+
+	send := &msg.GroupMessage{
+		GroupId:    received.GroupId,
+		Message:    segments,
+		AutoEscape: false,
+	}
+
+	if _, err := send.Send(f.conf.BotAddr, f.conf.BotToken); err != nil {
+		logger.Errorf(ctx, "sendMessage error: %+v", retErr)
+		ctx.Status(http.StatusNoContent)
+		return
+	}
+
+	ctx.Status(http.StatusNoContent)
+	return
 }
