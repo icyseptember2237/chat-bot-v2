@@ -8,7 +8,7 @@ import (
 	"chatbot/server/httpserver"
 	"chatbot/utils/crypto"
 	"chatbot/utils/deep"
-	engine_pool "chatbot/utils/engine_pool"
+	"chatbot/utils/engine_pool"
 	"chatbot/utils/luatool"
 	"context"
 	"encoding/json"
@@ -184,6 +184,13 @@ func (f *Server) Start() {
 
 func (f *Server) Reload(conf config.Server) {
 	_ = deep.Copy(&f.conf, conf)
+
+	f.handlerMap.Range(func(key, value any) bool {
+		f.handlerMap.Delete(key)
+		return true
+	})
+
+	f.initFunction(f.conf.Functions)
 
 }
 
