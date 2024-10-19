@@ -12,12 +12,14 @@ import (
 const metaName = "group_msg{meta}"
 
 var clientExports = map[string]lua.LGFunction{
-	"textSegment":  textSegment,
-	"atSegment":    atSegment,
-	"replySegment": replySegment,
-	"imageSegment": imageSegment,
-	"send":         send,
-	"toJsonString": toJsonString,
+	"textSegment":   textSegment,
+	"atSegment":     atSegment,
+	"replySegment":  replySegment,
+	"imageSegment":  imageSegment,
+	"fileSegment":   fileSegment,
+	"recordSegment": recordSegment,
+	"toJsonString":  toJsonString,
+	"send":          send,
 }
 
 func textSegment(state *lua.LState) int {
@@ -86,6 +88,47 @@ func imageSegment(state *lua.LState) int {
 	img := lImg.(lua.LString).String()
 
 	m.AppendSegment(msg.NewImageSegment(img))
+	return 0
+}
+
+func fileSegment(state *lua.LState) int {
+	m := checkMsg(state)
+	if m == nil {
+		return 0
+	}
+
+	lFile := state.Get(constant.Param2)
+	if lFile.Type() != lua.LTString {
+		state.ArgError(constant.Param2, "type error: file must be string")
+		return 1
+	}
+	file := lFile.(lua.LString).String()
+
+	lName := state.Get(constant.Param3)
+	if lName.Type() != lua.LTString {
+		state.ArgError(constant.Param2, "type error: name must be string")
+		return 1
+	}
+	name := lName.(lua.LString).String()
+
+	m.AppendSegment(msg.NewFileSegment(file, name))
+	return 0
+}
+
+func recordSegment(state *lua.LState) int {
+	m := checkMsg(state)
+	if m == nil {
+		return 0
+	}
+
+	lFile := state.Get(constant.Param2)
+	if lFile.Type() != lua.LTString {
+		state.ArgError(constant.Param2, "type error: file must be string")
+		return 1
+	}
+	file := lFile.(lua.LString).String()
+
+	m.AppendSegment(msg.NewRecordSegment(file))
 	return 0
 }
 
