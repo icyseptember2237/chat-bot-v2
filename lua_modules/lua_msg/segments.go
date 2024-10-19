@@ -9,7 +9,7 @@ import (
 	lua "github.com/yuin/gopher-lua"
 )
 
-const metaName = "group_msg{meta}"
+const metaName = "message{meta}"
 
 var clientExports = map[string]lua.LGFunction{
 	"textSegment":   textSegment,
@@ -165,14 +165,14 @@ func send(state *lua.LState) int {
 	}
 }
 
-func checkMsg(state *lua.LState) *msg.GroupMessage {
+func checkMsg(state *lua.LState) msg.SendMessage {
 	ud := state.Get(constant.Param1)
 	if ud.Type() != lua.LTUserData {
 		state.ArgError(constant.Param1, "client expected")
 		return nil
 	}
 
-	if m, ok := ud.(*lua.LUserData).Value.(*msg.GroupMessage); ok {
+	if m, ok := ud.(*lua.LUserData).Value.(msg.SendMessage); ok {
 		return m
 	}
 	state.ArgError(constant.Param1, "msg empty")

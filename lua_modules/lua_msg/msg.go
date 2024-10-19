@@ -8,10 +8,11 @@ import (
 	lua "github.com/yuin/gopher-lua"
 )
 
-const moduleName = "group_msg"
+const moduleName = "message"
 
 var moduleMethods = map[string]lua.LGFunction{
-	"new": newGroupMessage,
+	"newGroupMessage":   newGroupMessage,
+	"newPrivateMessage": newPrivateMessage,
 }
 
 func init() {
@@ -37,6 +38,23 @@ func newGroupMessage(state *lua.LState) int {
 	receiver := int64(lReceiver.(lua.LNumber))
 
 	m := msg.NewGroupMessage(receiver)
+	ud := state.NewUserData()
+	ud.Value = m
+
+	state.SetMetatable(ud, state.GetTypeMetatable(metaName))
+	state.Push(ud)
+	return 1
+}
+
+func newPrivateMessage(state *lua.LState) int {
+	lReceiver := state.Get(constant.Param1)
+	if lReceiver.Type() != lua.LTNumber {
+		state.ArgError(constant.Param1, "type error: receiver must be number")
+		return 0
+	}
+	receiver := int64(lReceiver.(lua.LNumber))
+
+	m := msg.NewPrivateMessage(receiver)
 	ud := state.NewUserData()
 	ud.Value = m
 
