@@ -113,17 +113,20 @@ func (f *Server) initFunction(functions []config.Function) {
 
 func (f *Server) Help(receive *msg.ReceiveMessage) {
 	var help strings.Builder
-	for _, function := range f.conf.Functions {
-		help.WriteString(fmt.Sprintf("%s: %s\n", function.Name, function.Description))
+
+	help.WriteString("使用方法：\n/功能 -子命令 参数")
+
+	for k, function := range f.conf.Functions {
+		help.WriteString(fmt.Sprintf("\n\n%d、%s: %s", k+1, function.Name, function.Description))
 		for _, handler := range function.Handlers {
 			if handler.Command != "" {
-				help.WriteString(fmt.Sprintf("%s:\n/%s -%s arg\n", handler.Description, function.Name, handler.Command))
+				help.WriteString(fmt.Sprintf("\n /%s -%s 参数: %s", function.Name, handler.Command, handler.Description))
 			} else {
-				help.WriteString(fmt.Sprintf("%s:\n/%s arg\n", handler.Description, function.Name))
+				help.WriteString(fmt.Sprintf("\n /%s 参数: %s", function.Name, handler.Description))
 			}
 		}
-		help.WriteString("\n")
 	}
+
 	msg.NewGroupMessage(
 		receive.GroupId,
 		msg.NewReplySegment(receive.MessageId),
