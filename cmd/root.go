@@ -3,6 +3,7 @@ package cmd
 import (
 	"chatbot/config"
 	"chatbot/function"
+	"chatbot/function/hook"
 	"chatbot/job"
 	"chatbot/worker"
 	"fmt"
@@ -24,6 +25,22 @@ var rootCmd = &cobra.Command{
 	Run: func(cmd *cobra.Command, args []string) {
 		functionServer := function.New(conf.Server)
 		if functionServer != nil {
+			if conf.Server.OnlyWhiteGroup {
+				functionServer.AddBeforeHook(hook.OnlyWhiteList)
+				fmt.Println("enable only white list")
+			}
+			if conf.Server.HandleReply {
+				functionServer.AddBeforeHook(hook.HandleReply)
+				fmt.Println("enable handle reply")
+			}
+			if conf.Server.SaveMessage {
+				functionServer.AddBeforeHook(hook.SaveMessage)
+				fmt.Println("enable save message")
+			}
+			if conf.Server.SaveImage {
+				functionServer.AddBeforeHook(hook.GetImage)
+				fmt.Println("enable save image")
+			}
 			go functionServer.Start()
 		}
 

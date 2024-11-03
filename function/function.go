@@ -228,14 +228,11 @@ func (f *Server) receiveMessage(ctx *gin.Context) {
 		return
 	}
 
-	if !received.CheckSource(f.conf.WhiteGroup, f.conf.BanGroup) {
-		logger.Infof(ctx, "msg source %v is not on whitelist or baned", received.GroupId)
-		ctx.Status(http.StatusNoContent)
-		return
-	}
-
 	for _, hookFunc := range f.beforeHooks {
-		go hookFunc(&received)
+		if !hookFunc(&received) {
+			ctx.Status(http.StatusNoContent)
+			return
+		}
 	}
 
 	if !received.CheckFormat() {

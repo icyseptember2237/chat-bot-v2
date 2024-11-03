@@ -1,14 +1,10 @@
 package msg
 
 import (
-	my_mongo "chatbot/storage/mongo"
-	"context"
-	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"strconv"
 	"strings"
 	"sync"
-	"time"
 )
 
 const (
@@ -71,13 +67,6 @@ func (m *ReceiveMessage) IsPrivateMessage() bool {
 }
 
 func (m *ReceiveMessage) CheckFormat() bool {
-	if !m.IsGroupMessage() {
-		return false
-	}
-	if len(m.Message) > 0 && m.Message[0].Type == SubReplyMsg {
-		m.Reply = &m.Message[0]
-		m.Message = m.Message[1:]
-	}
 	if len(m.Message) < 2 || m.Message[0].Type != SubAtMsg || m.Message[1].Type != SubTextMsg {
 		return false
 	}
@@ -113,14 +102,6 @@ func (m *ReceiveMessage) GetMessageId() int64 {
 }
 
 func (m *ReceiveMessage) SplitMessage() (entry string, command string, ok bool) {
-	if m.Reply != nil {
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-		if msgId, err := strconv.ParseInt(m.Reply.Data["id"].(string), 10, 64); err == nil {
-			col.FindOne(ctx, bson.M{"message_id": msgId}).Decode(&m.ReplyMessage)
-		}
-	}
-
 	text := strings.TrimSpace(m.Message[1].Data["text"].(string))
 	texts := strings.Split(text, " ")
 	num := len(texts)
@@ -162,15 +143,4 @@ func (m *ReceiveMessage) SplitMessage() (entry string, command string, ok bool) 
 
 	return "", "", false
 
-}
-
-func (m *ReceiveMessage) SaveMessage() {
-	if col == nil && mu.TryLock() {
-		defer mu.Unlock()
-		col = my_mongo.Get("default").Database("bot").Collection("msg")
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*1)
-	defer cancel()
-	col.InsertOne(ctx, m)
 }
