@@ -4,6 +4,7 @@ import (
 	"chatbot/config"
 	"chatbot/logger"
 	"chatbot/storage/gorm"
+	"chatbot/storage/mongo"
 	"context"
 	"fmt"
 	"github.com/spf13/cobra"
@@ -37,6 +38,11 @@ func preRun(cmd *cobra.Command, args []string) {
 	if conf.Resources != nil && len(conf.Resources.Storage.Postgresql) > 0 {
 		if err := gorm.Init(ctx, conf.Resources.Storage.Postgresql, gorm.DBTypePostgresql); err != nil {
 			panic(fmt.Errorf("PostgreSQL init error: %s", err.Error()))
+		}
+	}
+	if conf.Resources != nil && len(conf.Resources.Storage.Mongo) > 0 {
+		if err := mongo.Init(ctx, conf.Resources.Storage.Mongo); err != nil {
+			panic(fmt.Errorf("MongoDB init error: %s", err.Error()))
 		}
 	}
 }
