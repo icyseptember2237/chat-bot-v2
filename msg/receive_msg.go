@@ -1,9 +1,15 @@
 package msg
 
 import (
+	"chatbot/config"
+	"context"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 )
 
 const (
@@ -15,28 +21,33 @@ const (
 	SubReplyMsg = "reply"
 )
 
+var col *mongo.Collection
+var mu sync.Mutex
+
 type ReceiveMessage struct {
-	SelfId        int64      `json:"self_id"`
-	UserId        int64      `json:"user_id"`
-	Time          int64      `json:"time"`
-	MessageId     int64      `json:"message_id"`
-	RealId        int64      `json:"real_id"`
-	MessageSeq    int64      `json:"message_seq"`
-	MessageType   string     `json:"message_type"`
-	Sender        *Sender    `json:"sender" gorm:"type:jsonb"`
-	RawMessage    string     `json:"raw_message"`
-	Font          int64      `json:"font"`
-	SubType       string     `json:"sub_type"`
-	Message       Messages   `json:"message" gorm:"type:jsonb"`
-	MessageFormat string     `json:"message_format"`
-	PostType      string     `json:"post_type"`
-	GroupId       int64      `json:"group_id"`
-	Handled       bool       `gorm:"type:boolean"`
-	FunctionName  string     `json:"function_name"`
-	Mutex         sync.Mutex `gorm:"-" json:"-"`
-	Entry         string     `gorm:"-" json:"entry"`
-	Command       string     `gorm:"-" json:"command"`
-	Text          string     `gorm:"-" json:"text"`
+	SelfId        int64           `json:"self_id" bson:"self_id"`
+	UserId        int64           `json:"user_id" bson:"user_id"`
+	Time          int64           `json:"time" bson:"time"`
+	MessageId     int64           `json:"message_id" bson:"message_id"`
+	RealId        int64           `json:"real_id" bson:"real_id"`
+	MessageSeq    int64           `json:"message_seq" bson:"message_seq"`
+	MessageType   string          `json:"message_type" bson:"message_type"`
+	Sender        *Sender         `json:"sender" json:"sender"`
+	RawMessage    string          `json:"raw_message" bson:"raw_message"`
+	Font          int64           `json:"font" bson:"font"`
+	SubType       string          `json:"sub_type" bson:"sub_type"`
+	Message       Messages        `json:"message" bson:"message"`
+	MessageFormat string          `json:"message_format" bson:"message_format"`
+	PostType      string          `json:"post_type" bson:"post_type"`
+	GroupId       int64           `json:"group_id" bson:"group_id"`
+	Handled       bool            `json:"-" bson:"-"`
+	FunctionName  string          `json:"-" bson:"-"`
+	Mutex         sync.Mutex      `json:"-" gorm:"-" bson:"-"`
+	Reply         *Message        `json:"reply" bson:"-"`
+	ReplyMessage  *ReceiveMessage `json:"reply_message" bson:"reply_message"`
+	Entry         string          `json:"entry" gorm:"-" bson:"-"`
+	Command       string          `json:"command" gorm:"-" bson:"-"`
+	Text          string          `json:"text" gorm:"-" bson:"-"`
 }
 
 type Sender struct {
@@ -63,6 +74,10 @@ func (m *ReceiveMessage) IsPrivateMessage() bool {
 func (m *ReceiveMessage) CheckFormat() bool {
 	if !m.IsGroupMessage() {
 		return false
+	}
+	if len(m.Message) > 0 && m.Message[0].Type == SubReplyMsg {
+		m.Reply = &m.Message[0]
+		m.Message = m.Message[1:]
 	}
 	if len(m.Message) < 2 || m.Message[0].Type != SubAtMsg || m.Message[1].Type != SubTextMsg {
 		return false
@@ -99,18 +114,19 @@ func (m *ReceiveMessage) GetMessageId() int64 {
 }
 
 func (m *ReceiveMessage) SplitMessage() (entry string, command string, ok bool) {
+	if m.Reply != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		if msgId, err := strconv.ParseInt(m.Reply.Data["id"], 10, 64); err == nil {
+			col.FindOne(ctx, bson.M{"message_id": msgId}).Decode(&m.ReplyMessage)
+		}
+	}
+
 	text := strings.TrimSpace(m.Message[1].Data["text"])
 	texts := strings.Split(text, " ")
 	num := len(texts)
 	if num <= 0 {
 		return "", "", false
-	}
-	if !strings.HasPrefix(texts[0], "/") {
-		m.Entry = "/help"
-		entry = "/help"
-		m.Command = ""
-		m.Text = text
-		return entry, command, true
 	}
 
 	if num == 1 {
@@ -147,4 +163,21 @@ func (m *ReceiveMessage) SplitMessage() (entry string, command string, ok bool) 
 
 	return "", "", false
 
+}
+
+func (m *ReceiveMessage) SaveMessage() {
+	if col == nil && mu.TryLock() {
+		url := config.Get().Resources.Storage.Mongo["default"]
+		cxt, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancel()
+		con, err := mongo.Connect(cxt, options.Client().ApplyURI(url))
+		if err != nil {
+			panic(err)
+		}
+		col = con.Database("bot").Collection("msg")
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*1)
+	defer cancel()
+	col.InsertOne(ctx, m)
 }

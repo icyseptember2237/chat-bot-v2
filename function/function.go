@@ -222,6 +222,8 @@ func (f *Server) receiveMessage(ctx *gin.Context) {
 		return
 	}
 
+	received.SaveMessage()
+
 	if !received.CheckFormat() {
 		logger.Infof(ctx, "msg format wrong %+v", received.Message)
 		ctx.Status(http.StatusNoContent)
