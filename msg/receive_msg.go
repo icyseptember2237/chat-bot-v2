@@ -1,11 +1,10 @@
 package msg
 
 import (
-	"chatbot/config"
+	my_mongo "chatbot/storage/mongo"
 	"context"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
 	"strconv"
 	"strings"
 	"sync"
@@ -57,8 +56,8 @@ type Sender struct {
 }
 
 type Message struct {
-	Data map[string]string `json:"data"`
-	Type string            `json:"type"`
+	Data map[string]interface{} `json:"data"`
+	Type string                 `json:"type"`
 }
 
 type Messages []Message
@@ -82,7 +81,7 @@ func (m *ReceiveMessage) CheckFormat() bool {
 	if len(m.Message) < 2 || m.Message[0].Type != SubAtMsg || m.Message[1].Type != SubTextMsg {
 		return false
 	}
-	atqq, _ := strconv.ParseInt(m.Message[0].Data["qq"], 10, 64)
+	atqq, _ := strconv.ParseInt(m.Message[0].Data["qq"].(string), 10, 64)
 	if m.SelfId != atqq {
 		return false
 	}
@@ -117,12 +116,12 @@ func (m *ReceiveMessage) SplitMessage() (entry string, command string, ok bool) 
 	if m.Reply != nil {
 		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 		defer cancel()
-		if msgId, err := strconv.ParseInt(m.Reply.Data["id"], 10, 64); err == nil {
+		if msgId, err := strconv.ParseInt(m.Reply.Data["id"].(string), 10, 64); err == nil {
 			col.FindOne(ctx, bson.M{"message_id": msgId}).Decode(&m.ReplyMessage)
 		}
 	}
 
-	text := strings.TrimSpace(m.Message[1].Data["text"])
+	text := strings.TrimSpace(m.Message[1].Data["text"].(string))
 	texts := strings.Split(text, " ")
 	num := len(texts)
 	if num <= 0 {
@@ -167,14 +166,8 @@ func (m *ReceiveMessage) SplitMessage() (entry string, command string, ok bool) 
 
 func (m *ReceiveMessage) SaveMessage() {
 	if col == nil && mu.TryLock() {
-		url := config.Get().Resources.Storage.Mongo["default"]
-		cxt, cancel := context.WithTimeout(context.Background(), 3*time.Second)
-		defer cancel()
-		con, err := mongo.Connect(cxt, options.Client().ApplyURI(url))
-		if err != nil {
-			panic(err)
-		}
-		col = con.Database("bot").Collection("msg")
+		defer mu.Unlock()
+		col = my_mongo.Get("default").Database("bot").Collection("msg")
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*1)

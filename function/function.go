@@ -3,6 +3,7 @@ package function
 import (
 	"bytes"
 	"chatbot/function/config"
+	"chatbot/function/hook"
 	"chatbot/logger"
 	"chatbot/msg"
 	"chatbot/server/httpserver"
@@ -33,6 +34,9 @@ type Server struct {
 	handlerMap sync.Map
 	stopSig    chan bool
 	logger     logger.LoggerInterface
+
+	beforeHooks []hook.Hook
+	afterHooks  []hook.Hook
 }
 
 var f *Server
@@ -57,6 +61,14 @@ func New(conf config.Server) *Server {
 
 func GetFunctionServer() *Server {
 	return f
+}
+
+func (f *Server) AddBeforeHook(hook ...hook.Hook) {
+	f.beforeHooks = append(f.beforeHooks, hook...)
+}
+
+func (f *Server) AddAfterHook(hook ...hook.Hook) {
+	f.afterHooks = append(f.afterHooks, hook...)
 }
 
 func (f *Server) preLoad(ep *engine_pool.EnginePool, handlerCfg map[string]interface{}, script string) {
@@ -222,7 +234,9 @@ func (f *Server) receiveMessage(ctx *gin.Context) {
 		return
 	}
 
-	received.SaveMessage()
+	for _, hookFunc := range f.beforeHooks {
+		go hookFunc(&received)
+	}
 
 	if !received.CheckFormat() {
 		logger.Infof(ctx, "msg format wrong %+v", received.Message)
