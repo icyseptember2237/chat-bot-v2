@@ -23,6 +23,10 @@ func init() {
 
 			meta := state.NewTypeMetatable(metaName)
 			state.SetField(meta, "__index", state.SetFuncs(state.NewTable(), clientExports))
+
+			cursorMeta := state.NewTypeMetatable(cursorMetaName)
+			state.SetField(cursorMeta, "__index", state.SetFuncs(state.NewTable(), cursorExports))
+
 			return 1
 		})
 	})
