@@ -168,7 +168,7 @@ func send(state *lua.LState) int {
 func checkMsg(state *lua.LState) msg.SendMessage {
 	ud := state.Get(constant.Param1)
 	if ud.Type() != lua.LTUserData {
-		state.ArgError(constant.Param1, "client expected")
+		state.ArgError(constant.Param1, "msg expected")
 		return nil
 	}
 
