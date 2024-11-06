@@ -39,9 +39,10 @@ type ReceiveMessage struct {
 	FunctionName  string          `json:"-" bson:"-"`
 	Mutex         sync.Mutex      `json:"-" gorm:"-" bson:"-"`
 	Reply         *Message        `json:"reply" bson:"-"`
-	ReplyMessage  *ReceiveMessage `json:"reply_message" bson:"reply_message"`
+	ReplyMessage  *ReceiveMessage `json:"reply_message" bson:"-"`
 	Entry         string          `json:"entry" gorm:"-" bson:"-"`
 	Command       string          `json:"command" gorm:"-" bson:"-"`
+	ArgAt         []int64         `json:"arg_at" gorm:"-" bson:"-"`
 	Text          string          `json:"text" gorm:"-" bson:"-"`
 }
 
@@ -102,6 +103,15 @@ func (m *ReceiveMessage) GetMessageId() int64 {
 }
 
 func (m *ReceiveMessage) SplitMessage() (entry string, command string, ok bool) {
+	// 将消息段中的作为参数的at取出
+	// example: @bot /func -command @user
+	if len(m.Message) == 3 && m.Message[2].Type == SubAtMsg {
+		at := m.Message[3].Data["qq"].(string)
+		qq, _ := strconv.ParseInt(at, 10, 64)
+		m.ArgAt = append(m.ArgAt, qq)
+	}
+
+	// 处理消息段
 	text := strings.TrimSpace(m.Message[1].Data["text"].(string))
 	texts := strings.Split(text, " ")
 	num := len(texts)
