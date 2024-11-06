@@ -4,6 +4,7 @@ import (
 	"chatbot/utils/constant"
 	"chatbot/utils/luatool"
 	"context"
+	"fmt"
 	lua "github.com/yuin/gopher-lua"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -12,6 +13,7 @@ const cursorMetaName = "cursor{meta}"
 
 var cursorExports = map[string]lua.LGFunction{
 	"next":         next,
+	"all":          cursorAll,
 	"close":        cursorClose,
 	"setBatchSize": setBatchSize,
 }
@@ -38,6 +40,26 @@ func next(state *lua.LState) int {
 	}
 
 	state.Push(lua.LNil)
+	return 1
+}
+
+func cursorAll(state *lua.LState) int {
+	cursor := checkCursor(state)
+	if cursor == nil {
+		state.Push(lua.LNil)
+		return 0
+	}
+
+	var results []interface{}
+	if err := cursor.All(context.Background(), &results); err != nil {
+		fmt.Println(err)
+		state.Push(lua.LNil)
+		return 0
+	}
+	cursor.Close(context.Background())
+
+	lResults := luatool.ConvertToTable(state, results)
+	state.Push(lResults)
 	return 1
 }
 
