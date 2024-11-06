@@ -30,5 +30,13 @@ func checkConnection(state *lua.LState) *Connection {
 }
 
 var clientExports = map[string]lua.LGFunction{
-	"findOne": findOne,
+	"insertOne":  insertOne,
+	"insertMany": insertMany,
+	"deleteOne":  deleteOne,
+	"deleteMany": deleteMany,
+	"updateOne":  updateOne,
+	"updateMany": updateMany,
+	"findOne":    findOne,
+	"find":       find,
+	"count":      count,
 }
