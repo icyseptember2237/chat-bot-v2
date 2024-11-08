@@ -4,7 +4,6 @@ import (
 	"chatbot/utils/constant"
 	"chatbot/utils/luatool"
 	"context"
-	"fmt"
 	lua "github.com/yuin/gopher-lua"
 	"go.mongodb.org/mongo-driver/mongo"
 )
@@ -50,20 +49,20 @@ func cursorAll(state *lua.LState) int {
 		return 0
 	}
 
-	var results []interface{}
-	if err := cursor.All(context.Background(), &results); err != nil {
-		fmt.Println(err)
-		state.Push(lua.LNil)
-		return 0
-	}
-	cursor.Close(context.Background())
-
 	lResults := state.NewTable()
-	for _, row := range results {
-		dst := luatool.ConvertToTable(state, row)
+	for cursor.Next(context.Background()) {
+		doc := cursor.Current
+		result, err := convertFromBsonRaw(doc)
+		if err != nil {
+			state.Push(lua.LFalse)
+			cursor.Close(context.Background())
+			return 1
+		}
+		dst := luatool.ConvertToTable(state, result)
 		lResults.Append(dst)
 	}
 	state.Push(lResults)
+	cursor.Close(context.Background())
 	return 1
 }
 
