@@ -58,7 +58,11 @@ func cursorAll(state *lua.LState) int {
 	}
 	cursor.Close(context.Background())
 
-	lResults := luatool.ConvertToTable(state, results)
+	lResults := state.NewTable()
+	for _, row := range results {
+		dst := luatool.ConvertToTable(state, row)
+		lResults.Append(dst)
+	}
 	state.Push(lResults)
 	return 1
 }
