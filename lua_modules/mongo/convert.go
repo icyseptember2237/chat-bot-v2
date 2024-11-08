@@ -75,25 +75,27 @@ func convertSpecialKeys(bm bson.M, keyName string) {
 	}
 }
 
-func convertToBsonM(src interface{}) (bson.M, error) {
-	dataBytes, err := bson.Marshal(src)
+func convertToBson(src interface{}) (interface{}, error) {
+	t, dataBytes, err := bson.MarshalValue(src)
 	if err != nil {
 		return nil, err
 	}
 
-	bm := bson.M{}
-	err = bson.Unmarshal(dataBytes, &bm)
+	var bs interface{}
+	err = bson.UnmarshalValue(t, dataBytes, &bs)
 	if err != nil {
 		return nil, err
 	}
 
-	// convert to isoDate
-	convertSpecialKeys(bm, convertISODateKeys)
+	if bsm, ok := bs.(bson.M); ok {
+		// convert to isoDate
+		convertSpecialKeys(bsm, convertISODateKeys)
 
-	// convert to oid
-	convertSpecialKeys(bm, convertOIDKeys)
+		// convert to oid
+		convertSpecialKeys(bsm, convertOIDKeys)
+	}
 
-	return bm, nil
+	return bs, nil
 }
 
 func convertFromBsonRaw(src bson.Raw) (map[string]interface{}, error) {

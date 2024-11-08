@@ -35,7 +35,7 @@ func findOne(state *lua.LState) int {
 	filter := gluamapper.ToGoValue(lFilter, gluamapper.Option{NameFunc: func(s string) string { return s }})
 	filter = luatool.ConvertLuaData(filter)
 
-	bsm, err := convertToBsonM(filter)
+	bsm, err := convertToBson(filter)
 	if err != nil {
 		fmt.Println(err)
 		state.ArgError(constant.Param2, "invalid filter format")
@@ -78,7 +78,7 @@ func find(state *lua.LState) int {
 	filter := gluamapper.ToGoValue(lFilter, gluamapper.Option{NameFunc: func(s string) string { return s }})
 	filter = luatool.ConvertLuaData(filter)
 
-	bsm, err := convertToBsonM(filter)
+	bsm, err := convertToBson(filter)
 	if err != nil {
 		fmt.Println(err)
 		state.ArgError(constant.Param2, "invalid filter format")
@@ -100,7 +100,7 @@ func find(state *lua.LState) int {
 		sort := gluamapper.ToGoValue(lSort, gluamapper.Option{NameFunc: func(s string) string { return s }})
 		sort = luatool.ConvertLuaData(sort)
 
-		stm, err := convertToBsonM(sort)
+		stm, err := convertToBson(sort)
 		if err == nil {
 			opts.SetSort(stm)
 		}

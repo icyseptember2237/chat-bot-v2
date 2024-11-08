@@ -39,4 +39,5 @@ var clientExports = map[string]lua.LGFunction{
 	"findOne":    findOne,
 	"find":       find,
 	"count":      count,
+	"aggregate":  aggregate,
 }

@@ -25,7 +25,7 @@ func count(state *lua.LState) int {
 	}})
 	filter = luatool.ConvertLuaData(filter)
 
-	bd, err := convertToBsonM(filter)
+	bd, err := convertToBson(filter)
 	if err != nil {
 		state.ArgError(constant.Param2, "invalid filter format")
 		return 0

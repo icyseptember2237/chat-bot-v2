@@ -42,7 +42,7 @@ func updateOne(state *lua.LState) int {
 	}})
 	filter = luatool.ConvertLuaData(filter)
 
-	filterM, err := convertToBsonM(filter)
+	filterM, err := convertToBson(filter)
 	if err != nil {
 		state.ArgError(constant.Param2, "invalid filter format")
 		return 0
@@ -53,7 +53,7 @@ func updateOne(state *lua.LState) int {
 	}})
 	update = luatool.ConvertLuaData(update)
 
-	updateM, err := convertToBsonM(update)
+	updateM, err := convertToBson(update)
 	if err != nil {
 		state.ArgError(constant.Param2, "invalid update format")
 		return 0
@@ -103,7 +103,7 @@ func updateMany(state *lua.LState) int {
 	}})
 	filter = luatool.ConvertLuaData(filter)
 
-	filterM, err := convertToBsonM(filter)
+	filterM, err := convertToBson(filter)
 	if err != nil {
 		state.ArgError(constant.Param2, "invalid filter format")
 		return 0
@@ -114,7 +114,7 @@ func updateMany(state *lua.LState) int {
 	}})
 	update = luatool.ConvertLuaData(update)
 
-	updateM, err := convertToBsonM(update)
+	updateM, err := convertToBson(update)
 	if err != nil {
 		state.ArgError(constant.Param2, "invalid update format")
 		return 0

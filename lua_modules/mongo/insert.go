@@ -27,7 +27,7 @@ func insertOne(state *lua.LState) int {
 	}})
 	doc = luatool.ConvertLuaData(doc)
 
-	bd, err := convertToBsonM(doc)
+	bd, err := convertToBson(doc)
 	if err != nil {
 		state.ArgError(constant.Param2, "invalid data format")
 		return 0
@@ -62,7 +62,7 @@ func insertMany(state *lua.LState) int {
 		data := gluamapper.ToGoValue(value2, gluamapper.Option{NameFunc: gluamapper.ToUpperCamelCase})
 		data = luatool.ConvertLuaData(data)
 
-		bd, err := convertToBsonM(data)
+		bd, err := convertToBson(data)
 		if err != nil {
 			return
 		}

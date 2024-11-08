@@ -26,7 +26,7 @@ func deleteOne(state *lua.LState) int {
 	}})
 	filter = luatool.ConvertLuaData(filter)
 
-	bsm, err := convertToBsonM(filter)
+	bsm, err := convertToBson(filter)
 	if err != nil {
 		state.ArgError(constant.Param2, "invalid filter format")
 		return 0
@@ -60,7 +60,7 @@ func deleteMany(state *lua.LState) int {
 	}})
 	filter = luatool.ConvertLuaData(filter)
 
-	bsm, err := convertToBsonM(filter)
+	bsm, err := convertToBson(filter)
 	if err != nil {
 		state.ArgError(constant.Param2, "invalid filter format")
 		return 0
