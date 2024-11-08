@@ -5,6 +5,7 @@ import (
 	"chatbot/utils/constant"
 	"chatbot/utils/engine_pool"
 	"chatbot/utils/luatool"
+	"encoding/json"
 	"github.com/icyseptember2237/engine"
 	lua "github.com/yuin/gopher-lua"
 )
@@ -40,11 +41,14 @@ func getGroupMemberList(state *lua.LState) int {
 		return 1
 	}
 
-	lTable := state.NewTable()
-	for _, v := range res {
-		lv := luatool.ConvertToTable(state, v)
-		lTable.Append(lv)
+	js, _ := json.Marshal(res)
+	var list []interface{}
+	if err := json.Unmarshal(js, &list); err != nil {
+		state.Push(lua.LNil)
+		return 1
 	}
+
+	lTable := luatool.ConvertToTable(state, list)
 	state.Push(lTable)
 	return 1
 }
