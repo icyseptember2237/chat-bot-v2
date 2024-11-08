@@ -40,7 +40,11 @@ func getGroupMemberList(state *lua.LState) int {
 		return 1
 	}
 
-	lTable := luatool.ConvertToTable(state, res)
+	lTable := state.NewTable()
+	for _, v := range res {
+		lv := luatool.ConvertToTable(state, v)
+		lTable.Append(lv)
+	}
 	state.Push(lTable)
 	return 1
 }
