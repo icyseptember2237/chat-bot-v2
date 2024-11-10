@@ -43,5 +43,5 @@ func aggregate(state *lua.LState) int {
 	state.SetMetatable(ud, state.GetTypeMetatable(cursorMetaName))
 	state.Push(ud)
 
-	return 0
+	return 1
 }
