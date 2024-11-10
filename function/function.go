@@ -258,7 +258,7 @@ func (f *Server) receiveMessage(ctx *gin.Context) {
 	}
 	var handler interface{}
 	if handler, ok = f.handlerMap.Load(key); !ok {
-		if handler, ok = f.handlerMap.Load(asteriskKey); !ok {
+		if handler, ok = f.handlerMap.Load(asteriskKey); command == "" || !ok {
 			logger.Infof(ctx, "function %s not found", key)
 			ctx.Status(http.StatusNoContent)
 			return
