@@ -1,10 +1,15 @@
 package msg
 
 import (
+	my_mongo "chatbot/storage/mongo"
+	"context"
+	"fmt"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 )
 
 const (
@@ -67,37 +72,6 @@ func (m *ReceiveMessage) IsPrivateMessage() bool {
 	return m.MessageType == PrivateMsg
 }
 
-func (m *ReceiveMessage) CheckFormat() bool {
-	if len(m.Message) < 2 || m.Message[0].Type != SubAtMsg || m.Message[1].Type != SubTextMsg {
-		return false
-	}
-	atqq, _ := strconv.ParseInt(m.Message[0].Data["qq"].(string), 10, 64)
-	if m.SelfId != atqq {
-		return false
-	}
-	return true
-}
-
-func (m *ReceiveMessage) CheckSource(whiteGroup, banGroup []int64) bool {
-	if whiteGroup != nil && len(whiteGroup) > 0 {
-		for _, group := range whiteGroup {
-			if m.GroupId == group {
-				return true
-			}
-		}
-		return false
-	}
-
-	if banGroup != nil && len(banGroup) > 0 {
-		for _, group := range banGroup {
-			if m.GroupId == group {
-				return false
-			}
-		}
-	}
-	return true
-}
-
 func (m *ReceiveMessage) GetMessageId() int64 {
 	return m.MessageId
 }
@@ -153,4 +127,69 @@ func (m *ReceiveMessage) SplitMessage() (entry string, command string, ok bool) 
 
 	return "", "", false
 
+}
+
+func (m *ReceiveMessage) ResolveMessage() bool {
+	segments := m.Message
+	atBot, functioned, commanded := false, false, false
+
+	for _, segment := range segments {
+		switch segment.Type {
+		case SubReplyMsg:
+			m.Reply = &Message{
+				Data: segment.Data,
+				Type: segment.Type,
+			}
+			if col == nil && mu.TryLock() {
+				defer mu.Unlock()
+				col = my_mongo.Get("default").Database("bot").Collection("msg")
+			}
+
+			ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
+			defer cancel()
+			if msgId, err := strconv.ParseInt(segment.Data["id"].(string), 10, 64); err == nil {
+				if err := col.FindOne(ctx, bson.M{"message_id": msgId}).Decode(&m.ReplyMessage); err != nil {
+					fmt.Println(err)
+				}
+			}
+			break
+		case SubAtMsg:
+			if !atBot {
+				atqq, _ := strconv.ParseInt(segment.Data["qq"].(string), 10, 64)
+				if m.SelfId == atqq {
+					atBot = true
+				}
+			} else if functioned {
+				at := segment.Data["qq"].(string)
+				qq, _ := strconv.ParseInt(at, 10, 64)
+				m.ArgAt = append(m.ArgAt, qq)
+			}
+			break
+		case SubTextMsg:
+			if atBot {
+				if !functioned {
+					text := strings.TrimSpace(segment.Data["text"].(string))
+					for _, v := range strings.Split(text, " ") {
+						if strings.HasPrefix(v, "/") {
+							m.Entry = v
+							functioned = true
+						} else if functioned {
+							if strings.HasPrefix(v, "-") && !commanded {
+								m.Command, _ = strings.CutPrefix(v, "-")
+								commanded = true
+							} else {
+								m.Text = v
+							}
+						}
+					}
+				} else {
+					m.Text = m.Text + segment.Data["text"].(string)
+				}
+			}
+			break
+		default:
+			break
+		}
+	}
+	return atBot && functioned
 }

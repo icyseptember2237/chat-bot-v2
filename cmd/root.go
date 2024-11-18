@@ -33,10 +33,6 @@ var rootCmd = &cobra.Command{
 				functionServer.AddBeforeHook(hook.SaveMessage)
 				fmt.Println("enable save message")
 			}
-			if conf.Server.HandleReply {
-				functionServer.AddBeforeHook(hook.HandleReply)
-				fmt.Println("enable handle reply")
-			}
 			if conf.Server.SaveImage {
 				functionServer.AddBeforeHook(hook.GetImage)
 				fmt.Println("enable save image")

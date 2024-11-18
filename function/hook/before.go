@@ -11,7 +11,6 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 	"io"
 	"net/http"
-	"strconv"
 	"sync"
 	"time"
 )
@@ -33,20 +32,6 @@ var OnlyWhiteList Hook = func(message *msg.ReceiveMessage) bool {
 	}
 	logger.Infof(context.Background(), "msg source %v is not on whitelist", message.GroupId)
 	return false
-}
-
-var HandleReply Hook = func(message *msg.ReceiveMessage) bool {
-	if len(message.Message) > 0 && message.Message[0].Type == msg.SubReplyMsg {
-		message.Reply = &message.Message[0]
-		message.Message = message.Message[1:]
-
-		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-		defer cancel()
-		if msgId, err := strconv.ParseInt(message.Reply.Data["id"].(string), 10, 64); err == nil {
-			msgCol.FindOne(ctx, bson.M{"message_id": msgId}).Decode(&message.ReplyMessage)
-		}
-	}
-	return true
 }
 
 var SaveMessage Hook = func(message *msg.ReceiveMessage) bool {

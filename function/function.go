@@ -235,21 +235,15 @@ func (f *Server) receiveMessage(ctx *gin.Context) {
 		}
 	}
 
-	if !received.CheckFormat() {
-		logger.Infof(ctx, "msg format wrong %+v", received.Message)
-		ctx.Status(http.StatusNoContent)
-		return
-	}
-
-	entry, command, ok := received.SplitMessage()
+	ok := received.ResolveMessage()
 	if !ok {
-		logger.Infof(ctx, "msg split err %+v, result: %s %s %s", received.Message, entry, command, received.Text)
+		logger.Infof(ctx, "msg split err %+v, result: %s %s %s", received.Message, received.Entry, received.Command, received.Text)
 		ctx.Status(http.StatusNoContent)
 		return
 	}
 
-	key := entry + "/" + command
-	asteriskKey := entry + "/*"
+	key := received.Entry + "/" + received.Command
+	asteriskKey := received.Entry + "/*"
 	if strings.HasPrefix(key, "/help/") {
 		logger.Infof(ctx, "help msg")
 		f.Help(&received)
@@ -258,7 +252,7 @@ func (f *Server) receiveMessage(ctx *gin.Context) {
 	}
 	var handler interface{}
 	if handler, ok = f.handlerMap.Load(key); !ok {
-		if handler, ok = f.handlerMap.Load(asteriskKey); command == "" || !ok {
+		if handler, ok = f.handlerMap.Load(asteriskKey); received.Command == "" || !ok {
 			logger.Infof(ctx, "function %s not found", key)
 			ctx.Status(http.StatusNoContent)
 			return
