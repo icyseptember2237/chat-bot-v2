@@ -237,7 +237,7 @@ func (f *Server) receiveMessage(ctx *gin.Context) {
 
 	ok := received.ResolveMessage()
 	if !ok {
-		logger.Infof(ctx, "msg split err %+v, result: %s %s %s", received.Message, received.Entry, received.Command, received.Text)
+		logger.Debugf(ctx, "msg split err %+v, result: %s %s %s", received.Message, received.Entry, received.Command, received.Text)
 		ctx.Status(http.StatusNoContent)
 		return
 	}
