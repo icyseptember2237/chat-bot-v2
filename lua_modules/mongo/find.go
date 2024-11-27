@@ -9,10 +9,8 @@ import (
 	"github.com/pkg/errors"
 	lua "github.com/yuin/gopher-lua"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"reflect"
 )
 
 const (
@@ -43,17 +41,6 @@ func findOne(state *lua.LState) int {
 	}
 
 	var res bson.Raw
-	fmt.Println(reflect.TypeOf(bsm), bsm)
-	oid, _ := primitive.ObjectIDFromHex("6726f7ee57b4b5166a002c92")
-	temp := bson.D{
-		{
-			"group_id", 592715284,
-		},
-		{
-			"_id", oid,
-		},
-	}
-	fmt.Println(reflect.TypeOf(temp), temp)
 	err = conn.col.FindOne(context.Background(), bsm).Decode(&res)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) == false {
