@@ -9,7 +9,8 @@ import (
 const moduleName = "encode"
 
 var moduleMethods = map[string]lua.LGFunction{
-	"base64": base64Encode,
+	"base64":      base64Encode,
+	"utf8Convert": utf8Convert,
 }
 
 func init() {

@@ -22,7 +22,9 @@ require (
 )
 
 require (
+	github.com/PuerkitoBio/goquery v1.9.0 // indirect
 	github.com/ailncode/gluaxmlpath v0.0.0-20161126153117-6ce478ecb4a6 // indirect
+	github.com/andybalholm/cascadia v1.3.2 // indirect
 	github.com/bytedance/sonic v1.11.6 // indirect
 	github.com/bytedance/sonic/loader v0.1.1 // indirect
 	github.com/ciaos/gluahttp v0.0.0-20230325024036-70d6a85541dd // indirect
