@@ -5,7 +5,6 @@ import (
 	"chatbot/utils/constant"
 	"chatbot/utils/luatool"
 	"context"
-	"github.com/yuin/gluamapper"
 	lua "github.com/yuin/gopher-lua"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -37,9 +36,9 @@ func updateOne(state *lua.LState) int {
 		lUpsert = optTable.RawGet(lua.LString(upsertTableKey))
 	}
 
-	filter := gluamapper.ToGoValue(lFilter, gluamapper.Option{NameFunc: func(s string) string {
+	filter := ToGoValue(lFilter, func(s string) string {
 		return s
-	}})
+	})
 	filter = luatool.ConvertLuaData(filter)
 
 	filterM, err := convertToBson(filter)
@@ -48,9 +47,9 @@ func updateOne(state *lua.LState) int {
 		return 0
 	}
 
-	update := gluamapper.ToGoValue(lUpdate, gluamapper.Option{NameFunc: func(s string) string {
+	update := ToGoValue(lUpdate, func(s string) string {
 		return s
-	}})
+	})
 	update = luatool.ConvertLuaData(update)
 
 	updateM, err := convertToBson(update)
@@ -98,9 +97,9 @@ func updateMany(state *lua.LState) int {
 		lUpsert = optTable.RawGet(lua.LString(upsertTableKey))
 	}
 
-	filter := gluamapper.ToGoValue(lFilter, gluamapper.Option{NameFunc: func(s string) string {
+	filter := ToGoValue(lFilter, func(s string) string {
 		return s
-	}})
+	})
 	filter = luatool.ConvertLuaData(filter)
 
 	filterM, err := convertToBson(filter)
@@ -109,9 +108,9 @@ func updateMany(state *lua.LState) int {
 		return 0
 	}
 
-	update := gluamapper.ToGoValue(lUpdate, gluamapper.Option{NameFunc: func(s string) string {
+	update := ToGoValue(lUpdate, func(s string) string {
 		return s
-	}})
+	})
 	update = luatool.ConvertLuaData(update)
 
 	updateM, err := convertToBson(update)

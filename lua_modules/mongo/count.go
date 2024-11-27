@@ -5,7 +5,6 @@ import (
 	"chatbot/utils/constant"
 	"chatbot/utils/luatool"
 	"context"
-	"github.com/yuin/gluamapper"
 	lua "github.com/yuin/gopher-lua"
 )
 
@@ -20,9 +19,9 @@ func count(state *lua.LState) int {
 		state.ArgError(constant.Param2, "type err: filter must be of type table")
 		return 0
 	}
-	filter := gluamapper.ToGoValue(lFilter, gluamapper.Option{NameFunc: func(s string) string {
+	filter := ToGoValue(lFilter, func(s string) string {
 		return s
-	}})
+	})
 	filter = luatool.ConvertLuaData(filter)
 
 	bd, err := convertToBson(filter)

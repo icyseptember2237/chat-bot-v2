@@ -7,11 +7,12 @@ import (
 	"context"
 	"fmt"
 	"github.com/pkg/errors"
-	"github.com/yuin/gluamapper"
 	lua "github.com/yuin/gopher-lua"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
+	"reflect"
 )
 
 const (
@@ -32,17 +33,27 @@ func findOne(state *lua.LState) int {
 		return 0
 	}
 
-	filter := gluamapper.ToGoValue(lFilter, gluamapper.Option{NameFunc: func(s string) string { return s }})
+	filter := ToGoValue(lFilter, func(s string) string { return s })
 	filter = luatool.ConvertLuaData(filter)
 
 	bsm, err := convertToBson(filter)
 	if err != nil {
-		fmt.Println(err)
 		state.ArgError(constant.Param2, "invalid filter format")
 		return 0
 	}
 
 	var res bson.Raw
+	fmt.Println(reflect.TypeOf(bsm), bsm)
+	oid, _ := primitive.ObjectIDFromHex("6726f7ee57b4b5166a002c92")
+	temp := bson.D{
+		{
+			"group_id", 592715284,
+		},
+		{
+			"_id", oid,
+		},
+	}
+	fmt.Println(reflect.TypeOf(temp), temp)
 	err = conn.col.FindOne(context.Background(), bsm).Decode(&res)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) == false {
@@ -75,7 +86,7 @@ func find(state *lua.LState) int {
 		return 0
 	}
 
-	filter := gluamapper.ToGoValue(lFilter, gluamapper.Option{NameFunc: func(s string) string { return s }})
+	filter := ToGoValue(lFilter, func(s string) string { return s })
 	filter = luatool.ConvertLuaData(filter)
 
 	bsm, err := convertToBson(filter)
@@ -97,7 +108,7 @@ func find(state *lua.LState) int {
 	opts := options.Find()
 
 	if lSort != nil && lSort.Type() == lua.LTTable {
-		sort := gluamapper.ToGoValue(lSort, gluamapper.Option{NameFunc: func(s string) string { return s }})
+		sort := ToGoValue(lSort, func(s string) string { return s })
 		sort = luatool.ConvertLuaData(sort)
 
 		stm, err := convertToBson(sort)

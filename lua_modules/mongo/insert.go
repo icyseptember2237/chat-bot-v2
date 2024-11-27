@@ -5,7 +5,6 @@ import (
 	"chatbot/utils/constant"
 	"chatbot/utils/luatool"
 	"context"
-	"github.com/yuin/gluamapper"
 	lua "github.com/yuin/gopher-lua"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	luar "layeh.com/gopher-luar"
@@ -22,9 +21,9 @@ func insertOne(state *lua.LState) int {
 		state.ArgError(constant.Param2, "type err: doc must be of type table")
 		return 0
 	}
-	doc := gluamapper.ToGoValue(lDoc, gluamapper.Option{NameFunc: func(s string) string {
+	doc := ToGoValue(lDoc, func(s string) string {
 		return s
-	}})
+	})
 	doc = luatool.ConvertLuaData(doc)
 
 	bd, err := convertToBson(doc)
@@ -59,7 +58,9 @@ func insertMany(state *lua.LState) int {
 
 	var docs []interface{}
 	lDocs.(*lua.LTable).ForEach(func(value lua.LValue, value2 lua.LValue) {
-		data := gluamapper.ToGoValue(value2, gluamapper.Option{NameFunc: gluamapper.ToUpperCamelCase})
+		data := ToGoValue(value2, func(s string) string {
+			return s
+		})
 		data = luatool.ConvertLuaData(data)
 
 		bd, err := convertToBson(data)

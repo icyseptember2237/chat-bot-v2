@@ -11,7 +11,8 @@ import (
 const moduleName = "mongo"
 
 var moduleMethods = map[string]lua.LGFunction{
-	"new": newConn,
+	"new":      newConn,
+	"ObjectId": oId,
 }
 
 func init() {

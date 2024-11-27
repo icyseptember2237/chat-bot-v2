@@ -5,7 +5,6 @@ import (
 	"chatbot/utils/constant"
 	"chatbot/utils/luatool"
 	"context"
-	"github.com/yuin/gluamapper"
 	lua "github.com/yuin/gopher-lua"
 )
 
@@ -21,9 +20,9 @@ func deleteOne(state *lua.LState) int {
 		return 0
 	}
 
-	filter := gluamapper.ToGoValue(lFilter, gluamapper.Option{NameFunc: func(s string) string {
+	filter := ToGoValue(lFilter, func(s string) string {
 		return s
-	}})
+	})
 	filter = luatool.ConvertLuaData(filter)
 
 	bsm, err := convertToBson(filter)
@@ -55,9 +54,9 @@ func deleteMany(state *lua.LState) int {
 		return 0
 	}
 
-	filter := gluamapper.ToGoValue(lFilter, gluamapper.Option{NameFunc: func(s string) string {
+	filter := ToGoValue(lFilter, func(s string) string {
 		return s
-	}})
+	})
 	filter = luatool.ConvertLuaData(filter)
 
 	bsm, err := convertToBson(filter)

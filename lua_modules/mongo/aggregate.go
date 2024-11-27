@@ -5,7 +5,6 @@ import (
 	"chatbot/utils/luatool"
 	"context"
 	"fmt"
-	"github.com/yuin/gluamapper"
 	lua "github.com/yuin/gopher-lua"
 )
 
@@ -21,7 +20,7 @@ func aggregate(state *lua.LState) int {
 		return 0
 	}
 
-	filter := gluamapper.ToGoValue(lFilter, gluamapper.Option{NameFunc: func(s string) string { return s }})
+	filter := ToGoValue(lFilter, func(s string) string { return s })
 	filter = luatool.ConvertLuaData(filter)
 
 	bs, err := convertToBson(filter)

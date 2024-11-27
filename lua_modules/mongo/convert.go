@@ -1,6 +1,8 @@
 package mongo
 
 import (
+	"fmt"
+	lua "github.com/yuin/gopher-lua"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"reflect"
@@ -72,6 +74,39 @@ func convertSpecialKeys(bm bson.M, keyName string) {
 			}
 		}
 		delete(bm, keyName)
+	}
+}
+
+func ToGoValue(lv lua.LValue, nameFunc func(s string) string) interface{} {
+	switch v := lv.(type) {
+	case *lua.LNilType:
+		return nil
+	case lua.LBool:
+		return bool(v)
+	case lua.LString:
+		return string(v)
+	case lua.LNumber:
+		return float64(v)
+	case *lua.LTable:
+		maxn := v.MaxN()
+		if maxn == 0 { // table
+			ret := make(map[interface{}]interface{})
+			v.ForEach(func(key, value lua.LValue) {
+				keystr := fmt.Sprint(ToGoValue(key, nameFunc))
+				ret[nameFunc(keystr)] = ToGoValue(value, nameFunc)
+			})
+			return ret
+		} else { // array
+			ret := make([]interface{}, 0, maxn)
+			for i := 1; i <= maxn; i++ {
+				ret = append(ret, ToGoValue(v.RawGetInt(i), nameFunc))
+			}
+			return ret
+		}
+	case *lua.LUserData:
+		return v.Value
+	default:
+		return v
 	}
 }
 
