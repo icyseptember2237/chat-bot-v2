@@ -55,7 +55,7 @@ func init() {
 
 	option := append(chromedp.DefaultExecAllocatorOptions[:],
 		//无头模式
-		chromedp.Flag("headless", false),
+		chromedp.Flag("headless", true),
 		// 防止监测webdriver
 		chromedp.Flag("enable-automation", false),
 		//禁用 blink 特征
