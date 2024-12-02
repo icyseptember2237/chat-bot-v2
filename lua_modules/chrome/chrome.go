@@ -4,6 +4,7 @@ import (
 	"chatbot/logger"
 	"chatbot/utils/engine_pool"
 	"context"
+	"fmt"
 	"github.com/chromedp/chromedp"
 	"github.com/icyseptember2237/engine"
 	lua "github.com/yuin/gopher-lua"
@@ -72,7 +73,9 @@ func init() {
 
 func newContext(state *lua.LState) int {
 
-	ctx, _ := chromedp.NewContext(allocator, chromedp.WithLogf(func(s string, i ...interface{}) {}))
+	ctx, _ := chromedp.NewContext(allocator, chromedp.WithLogf(func(s string, i ...interface{}) {
+		logger.Infof(context.Background(), "chrome ctx run: %s", fmt.Sprintf(s, i...))
+	}))
 
 	go func() {
 		select {
