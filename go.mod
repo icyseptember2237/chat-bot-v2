@@ -1,6 +1,8 @@
 module chatbot
 
-go 1.20
+go 1.23
+
+toolchain go1.23.3
 
 require (
 	github.com/gin-gonic/gin v1.10.0
@@ -27,9 +29,9 @@ require (
 	github.com/andybalholm/cascadia v1.3.2 // indirect
 	github.com/bytedance/sonic v1.11.6 // indirect
 	github.com/bytedance/sonic/loader v0.1.1 // indirect
-	github.com/chromedp/cdproto v0.0.0-20240801214329-3f85d328b335 // indirect
-	github.com/chromedp/chromedp v0.10.0 // indirect
-	github.com/chromedp/sysutil v1.0.0 // indirect
+	github.com/chromedp/cdproto v0.0.0-20241022234722-4d5d5faf59fb // indirect
+	github.com/chromedp/chromedp v0.11.2 // indirect
+	github.com/chromedp/sysutil v1.1.0 // indirect
 	github.com/ciaos/gluahttp v0.0.0-20230325024036-70d6a85541dd // indirect
 	github.com/cjoudrey/gluaurl v0.0.0-20161028222611-31cbb9bef199 // indirect
 	github.com/cloudwego/base64x v0.1.4 // indirect
@@ -90,7 +92,7 @@ require (
 	golang.org/x/exp v0.0.0-20230905200255-921286631fa9 // indirect
 	golang.org/x/net v0.29.0 // indirect
 	golang.org/x/sync v0.8.0 // indirect
-	golang.org/x/sys v0.25.0 // indirect
+	golang.org/x/sys v0.26.0 // indirect
 	golang.org/x/text v0.18.0 // indirect
 	google.golang.org/protobuf v1.34.1 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
