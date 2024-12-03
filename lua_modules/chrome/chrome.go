@@ -1,6 +1,7 @@
 package chrome
 
 import (
+	"chatbot/config"
 	"chatbot/logger"
 	"chatbot/utils/engine_pool"
 	"context"
@@ -8,6 +9,7 @@ import (
 	"github.com/chromedp/chromedp"
 	"github.com/icyseptember2237/engine"
 	lua "github.com/yuin/gopher-lua"
+	"sync"
 	"time"
 )
 
@@ -31,6 +33,7 @@ var moduleMethods = map[string]lua.LGFunction{
 }
 
 var allocator context.Context
+var mu sync.Mutex
 
 func init() {
 	engine_pool.RegisterModule(func(i engine.Engine) {
@@ -53,25 +56,26 @@ func init() {
 			return 1
 		})
 	})
+}
 
-	option := append(chromedp.DefaultExecAllocatorOptions[:],
-		//无头模式
-		chromedp.Flag("headless", true),
-		// 防止监测webdriver
-		chromedp.Flag("enable-automation", false),
-		//禁用 blink 特征
-		chromedp.Flag("disable-blink-features", "AutomationControlled"),
-		//忽略浏览器的风险提示（但好像并没什么用）
-		chromedp.Flag("ignore-certificate-errors", true),
-		//关闭浏览器声音（也没用）
-		chromedp.Flag("mute-audio", false),
-		//设置浏览器尺寸
-		chromedp.WindowSize(1150, 1000),
-	)
-	allocator, _ = chromedp.NewExecAllocator(context.Background(), option...)
+func checkRemoteAllocator() bool {
+	if allocator == nil {
+		mu.Lock()
+		defer mu.Unlock()
+		if allocator == nil {
+			allocator, _ = chromedp.NewRemoteAllocator(context.Background(), config.Get().Resources.Chromium)
+			return allocator != nil
+		}
+	}
+	return true
 }
 
 func newContext(state *lua.LState) int {
+	if !checkRemoteAllocator() {
+		logger.Warnf(context.Background(), "allocator init failed")
+		state.Push(lua.LNil)
+		return 1
+	}
 
 	ctx, _ := chromedp.NewContext(allocator, chromedp.WithLogf(func(s string, i ...interface{}) {
 		logger.Infof(context.Background(), "chrome ctx run: %s", fmt.Sprintf(s, i...))
