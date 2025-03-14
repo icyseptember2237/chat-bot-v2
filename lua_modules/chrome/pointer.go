@@ -3,7 +3,6 @@ package chrome
 import (
 	"chatbot/utils/constant"
 	"chatbot/utils/luatool"
-	"fmt"
 	lua "github.com/yuin/gopher-lua"
 	"reflect"
 )
@@ -34,13 +33,11 @@ func get(state *lua.LState) int {
 	case *interface{}:
 		val := reflect.ValueOf(v).Elem()
 		if !val.IsValid() {
-			fmt.Println("is not valid")
 			state.Push(lua.LNil)
 			break
 		}
 		valElem := val.Elem()
 		if !valElem.IsValid() {
-			fmt.Println("is not valid")
 			state.Push(lua.LNil)
 			break
 		}
