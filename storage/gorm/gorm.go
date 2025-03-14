@@ -3,6 +3,7 @@ package gorm
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"gorm.io/driver/mysql"
 	"gorm.io/driver/postgres"
@@ -32,8 +33,9 @@ func Init(ctx context.Context, configs map[string]string, dbtype string) error {
 				fmt.Println("connect db server connection pool failed.")
 				return err
 			}
-			sqlDB.SetConnMaxIdleTime(10)
-			sqlDB.SetMaxOpenConns(100)
+			sqlDB.SetMaxIdleConns(32)
+			sqlDB.SetConnMaxIdleTime(10 * time.Second)
+			sqlDB.SetMaxOpenConns(64)
 
 			cache["mysql_"+name] = client
 		case DBTypePostgresql:
@@ -41,6 +43,14 @@ func Init(ctx context.Context, configs map[string]string, dbtype string) error {
 			if err != nil {
 				return err
 			}
+			sqlDB, err := client.DB()
+			if err != nil {
+				fmt.Println("connect db server connection pool failed.")
+				return err
+			}
+			sqlDB.SetMaxIdleConns(32)
+			sqlDB.SetConnMaxIdleTime(10 * time.Second)
+			sqlDB.SetMaxOpenConns(64)
 			cache["postgres_"+name] = client
 		}
 	}
