@@ -58,6 +58,7 @@ func Init(ctx context.Context, configs map[string]string, dbtype string) error {
 }
 
 // Get get connection.
-func Get(name string) *gorm.DB {
-	return cache[name]
+func Get(name string) (*gorm.DB, bool) {
+	conn, ok := cache[name]
+	return conn, ok
 }
