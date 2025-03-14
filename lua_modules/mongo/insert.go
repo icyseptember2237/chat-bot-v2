@@ -41,7 +41,7 @@ func insertOne(state *lua.LState) int {
 
 	state.Push(lua.LTrue)
 	state.Push(luar.New(state, res.InsertedID))
-	return 1
+	return 2
 }
 
 func insertMany(state *lua.LState) int {
