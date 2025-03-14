@@ -153,6 +153,10 @@ func send(state *lua.LState) int {
 		return 0
 	}
 	conf := config.Get().Server
+	if conf.BotAddr == "" || conf.BotToken == "" {
+		state.Push(lua.LFalse)
+		return 1
+	}
 	if res, err := m.Send(conf.BotAddr, conf.BotToken); err == nil {
 		lTable := luatool.ConvertToTable(state, res)
 		state.Push(lua.LTrue)
@@ -161,7 +165,7 @@ func send(state *lua.LState) int {
 	} else {
 		state.Push(lua.LFalse)
 		state.Push(lua.LString(err.Error()))
-		return 0
+		return 2
 	}
 }
 
