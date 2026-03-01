@@ -7,10 +7,11 @@ import (
 	"chatbot/job"
 	"chatbot/worker"
 	"fmt"
-	"github.com/spf13/cobra"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/spf13/cobra"
 )
 
 func init() {

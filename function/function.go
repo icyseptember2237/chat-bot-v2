@@ -14,15 +14,16 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/icyseptember2237/engine"
-	"github.com/mitchellh/mapstructure"
-	"golang.org/x/time/rate"
 	"io"
 	"net/http"
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/icyseptember2237/engine"
+	"github.com/mitchellh/mapstructure"
+	"golang.org/x/time/rate"
 )
 
 const (
@@ -227,6 +228,7 @@ func (f *Server) receiveMessage(ctx *gin.Context) {
 		ctx.Status(http.StatusNoContent)
 		return
 	}
+	received.RewriteForward()
 
 	for _, hookFunc := range f.beforeHooks {
 		if !hookFunc(&received) {
