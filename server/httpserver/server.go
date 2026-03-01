@@ -5,12 +5,13 @@ import (
 	"chatbot/server/httpserver/middles"
 	"context"
 	"errors"
-	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+
+	"github.com/gin-gonic/gin"
 )
 
 type Server interface {

@@ -4,12 +4,13 @@ import (
 	my_mongo "chatbot/storage/mongo"
 	"context"
 	"fmt"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
 const (
@@ -25,30 +26,31 @@ var col *mongo.Collection
 var mu sync.Mutex
 
 type ReceiveMessage struct {
-	SelfId        int64           `json:"self_id" bson:"self_id"`
-	UserId        int64           `json:"user_id" bson:"user_id"`
-	Time          int64           `json:"time" bson:"time"`
-	MessageId     int64           `json:"message_id" bson:"message_id"`
-	RealId        int64           `json:"real_id" bson:"real_id"`
-	MessageSeq    int64           `json:"message_seq" bson:"message_seq"`
-	MessageType   string          `json:"message_type" bson:"message_type"`
-	Sender        *Sender         `json:"sender" json:"sender"`
-	RawMessage    string          `json:"raw_message" bson:"raw_message"`
-	Font          int64           `json:"font" bson:"font"`
-	SubType       string          `json:"sub_type" bson:"sub_type"`
-	Message       Messages        `json:"message" bson:"message"`
-	MessageFormat string          `json:"message_format" bson:"message_format"`
-	PostType      string          `json:"post_type" bson:"post_type"`
-	GroupId       int64           `json:"group_id" bson:"group_id"`
-	Handled       bool            `json:"-" bson:"-"`
-	FunctionName  string          `json:"-" bson:"-"`
-	Mutex         sync.Mutex      `json:"-" gorm:"-" bson:"-"`
-	Reply         *Message        `json:"reply" bson:"-"`
-	ReplyMessage  *ReceiveMessage `json:"reply_message" bson:"-"`
-	Entry         string          `json:"entry" gorm:"-" bson:"-"`
-	Command       string          `json:"command" gorm:"-" bson:"-"`
-	ArgAt         []int64         `json:"arg_at" gorm:"-" bson:"-"`
-	Text          string          `json:"text" gorm:"-" bson:"-"`
+	SelfId          int64           `json:"self_id" bson:"self_id"`
+	UserId          int64           `json:"user_id" bson:"user_id"`
+	Time            int64           `json:"time" bson:"time"`
+	MessageId       int64           `json:"message_id" bson:"message_id"`
+	RealId          int64           `json:"real_id" bson:"real_id"`
+	MessageSeq      int64           `json:"message_seq" bson:"message_seq"`
+	MessageType     string          `json:"message_type" bson:"message_type"`
+	Sender          *Sender         `json:"sender" json:"sender"`
+	RawMessage      string          `json:"raw_message" bson:"raw_message"`
+	Font            int64           `json:"font" bson:"font"`
+	SubType         string          `json:"sub_type" bson:"sub_type"`
+	Message         Messages        `json:"message" bson:"message"`
+	MessageFormat   string          `json:"message_format" bson:"message_format"`
+	PostType        string          `json:"post_type" bson:"post_type"`
+	GroupId         int64           `json:"group_id" bson:"group_id"`
+	ForwardSegments Messages        `json:"-" bson:"forward_segments"`
+	Handled         bool            `json:"-" bson:"-"`
+	FunctionName    string          `json:"-" bson:"-"`
+	Mutex           sync.Mutex      `json:"-" gorm:"-" bson:"-"`
+	Reply           *Message        `json:"reply" bson:"-"`
+	ReplyMessage    *ReceiveMessage `json:"reply_message" bson:"-"`
+	Entry           string          `json:"entry" gorm:"-" bson:"-"`
+	Command         string          `json:"command" gorm:"-" bson:"-"`
+	ArgAt           []int64         `json:"arg_at" gorm:"-" bson:"-"`
+	Text            string          `json:"text" gorm:"-" bson:"-"`
 }
 
 type Sender struct {
@@ -58,8 +60,9 @@ type Sender struct {
 }
 
 type Message struct {
-	Data map[string]interface{} `json:"data"`
-	Type string                 `json:"type"`
+	Data    map[string]interface{} `json:"data"`
+	Content []ReceiveMessage       `json:"content"`
+	Type    string                 `json:"type"`
 }
 
 type Messages []Message

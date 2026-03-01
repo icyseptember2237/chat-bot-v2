@@ -6,6 +6,7 @@ import (
 	"chatbot/utils/constant"
 	"chatbot/utils/luatool"
 	"encoding/json"
+
 	lua "github.com/yuin/gopher-lua"
 )
 
@@ -155,13 +156,14 @@ func send(state *lua.LState) int {
 	conf := config.Get().Server
 	if conf.BotAddr == "" || conf.BotToken == "" {
 		state.Push(lua.LFalse)
-		return 1
+		state.Push(lua.LString("bot address and token required"))
+		return 2
 	}
 	if res, err := m.Send(conf.BotAddr, conf.BotToken); err == nil {
 		lTable := luatool.ConvertToTable(state, res)
 		state.Push(lua.LTrue)
 		state.Push(lTable)
-		return 1
+		return 2
 	} else {
 		state.Push(lua.LFalse)
 		state.Push(lua.LString(err.Error()))

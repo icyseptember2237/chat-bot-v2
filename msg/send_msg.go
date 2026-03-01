@@ -8,6 +8,11 @@ import (
 	"time"
 )
 
+const (
+	msgTypePrivate = "private"
+	msgTypeGroup   = "group"
+)
+
 type SendMessage interface {
 	AppendSegment(seg ...*Segment)
 	Send(url, token string) (*SendResult, error)
@@ -19,15 +24,17 @@ type Segment struct {
 }
 
 type GroupMessage struct {
-	GroupId    int64      `json:"group_id" mapstructure:"GroupId"`
-	Message    []*Segment `json:"message" mapstructure:"Message"`
-	AutoEscape bool       `json:"auto_escape" mapstructure:"AutoEscape"`
+	MessageType string     `json:"message_type" mapstructure:"MessageType"`
+	GroupId     int64      `json:"group_id" mapstructure:"GroupId"`
+	Message     []*Segment `json:"message" mapstructure:"Message"`
+	AutoEscape  bool       `json:"auto_escape" mapstructure:"AutoEscape"`
 }
 
 type PrivateMessage struct {
-	UserId     int64      `json:"user_id" mapstructure:"UserId"`
-	Message    []*Segment `json:"message" mapstructure:"Message"`
-	AutoEscape bool       `json:"auto_escape" mapstructure:"AutoEscape"`
+	MessageType string     `json:"message_type" mapstructure:"MessageType"`
+	UserId      int64      `json:"user_id" mapstructure:"UserId"`
+	Message     []*Segment `json:"message" mapstructure:"Message"`
+	AutoEscape  bool       `json:"auto_escape" mapstructure:"AutoEscape"`
 }
 
 type SendResult struct {
@@ -112,10 +119,31 @@ func NewNetEaseMusicSegment(id string) *Segment {
 	}
 }
 
+func NewNodeSegment(userId int64, nodeSegments []*Segment) *Segment {
+	return &Segment{
+		Type: "node",
+		Data: map[string]interface{}{
+			"user_id": userId,
+			"content": nodeSegments,
+		},
+	}
+}
+
+func NewForwardSegment(id string, forwardSegments []*Segment) *Segment {
+	return &Segment{
+		Type: "forward",
+		Data: map[string]interface{}{
+			"id":      id,
+			"forward": forwardSegments,
+		},
+	}
+}
+
 func NewGroupMessage(receiver int64, segments ...*Segment) *GroupMessage {
 	msg := &GroupMessage{
-		GroupId: receiver,
-		Message: make([]*Segment, 0),
+		MessageType: msgTypeGroup,
+		GroupId:     receiver,
+		Message:     make([]*Segment, 0),
 	}
 	for _, segment := range segments {
 		msg.Message = append(msg.Message, segment)
@@ -132,7 +160,7 @@ func (msg *GroupMessage) Send(url, token string) (*SendResult, error) {
 	if err != nil {
 		return nil, err
 	}
-	request, err := http.NewRequest(http.MethodPost, url+"/send_group_msg", bytes.NewBuffer(data))
+	request, err := http.NewRequest(http.MethodPost, url+"/send_msg", bytes.NewBuffer(data))
 	if err != nil {
 		return nil, err
 	}
@@ -155,8 +183,9 @@ func (msg *GroupMessage) Send(url, token string) (*SendResult, error) {
 
 func NewPrivateMessage(receiver int64, segments ...*Segment) *PrivateMessage {
 	msg := &PrivateMessage{
-		UserId:  receiver,
-		Message: make([]*Segment, 0),
+		MessageType: msgTypePrivate,
+		UserId:      receiver,
+		Message:     make([]*Segment, 0),
 	}
 	for _, segment := range segments {
 		msg.Message = append(msg.Message, segment)
@@ -173,7 +202,7 @@ func (msg *PrivateMessage) Send(url, token string) (*SendResult, error) {
 	if err != nil {
 		return nil, err
 	}
-	request, err := http.NewRequest(http.MethodPost, url+"/send_private_msg", bytes.NewBuffer(data))
+	request, err := http.NewRequest(http.MethodPost, url+"/send_msg", bytes.NewBuffer(data))
 	if err != nil {
 		return nil, err
 	}
